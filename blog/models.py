@@ -1,14 +1,32 @@
 from django.db import models
 from django.shortcuts import render
 
+from modelcluster.fields import ParentalKey
 from streams import blocks
-from wagtail.core.models import Page
+from wagtail.core.models import Orderable, Page
 from wagtail.core.fields import RichTextField, StreamField
 from wagtail.contrib.routable_page.models import RoutablePage, RoutablePageMixin, route
-from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel, StreamFieldPanel
+from wagtail.admin.edit_handlers import (
+    FieldPanel,
+    MultiFieldPanel,
+    StreamFieldPanel,
+    InlinePanel,
+)
 from wagtail.snippets.models import register_snippet
 from wagtail.images.edit_handlers import ImageChooserPanel
+from wagtail.snippets.edit_handlers import SnippetChooserPanel
 from wagtail.search import index
+
+
+class BlogAuthorsOrderable(Orderable):
+    page = ParentalKey("blog.BlogDetailpage", related_name="blog_authors")
+    author = models.ForeignKey(
+        "blog.blogAuthor",
+        on_delete=models.CASCADE,
+    )
+    panels = [
+        SnippetChooserPanel("author"),
+    ]
 
 
 class BlogAuthor(models.Model):
@@ -72,6 +90,7 @@ class BlogIndexPage(RoutablePageMixin, Page):
         context = super().get_context(request, *args, **kwargs)
         context["posts"] = BlogPage.objects.live().public()
         context["regular_context_var"] = "Hello world 123123123"
+        context["authors"] = BlogAuthor.objects.all()
         return context
 
     @route(r"^latest/$", name="latest_post")
@@ -141,5 +160,11 @@ class BlogDetailPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("custom_title"),
         ImageChooserPanel("blog_image"),
+        MultiFieldPanel(
+            [
+                InlinePanel("blog_authors", label="Author", min_num=1, max_num=4),
+            ],
+            heading="Author(s)",
+        ),
         StreamFieldPanel("content"),
     ]
