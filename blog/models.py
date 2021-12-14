@@ -84,8 +84,8 @@ class BlogDetailPage(Page):
     )
     content = StreamField(
         [
-            ("title_and_text", blocks.TitleAndTextBlock()),
             ("full_richtext", blocks.RichTextblock()),
+            ("title_and_text", blocks.TitleAndTextBlock()),
             ("simple_richtext", blocks.SimpleRichTextblock()),
             ("cards", blocks.CardBlock()),
             ("cta", blocks.CTABlock()),
