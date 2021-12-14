@@ -30,12 +30,23 @@ class BlogIndexPage(RoutablePageMixin, Page):
         context["regular_context_var"] = "Hello world 123123123"
         return context
 
-    @route(r"^latest/$", name="latesst_post")
+    @route(r"^latest/$", name="latest_post")
     def latest_blog_posts(self, request, *args, **kwargs):
         context = self.get_context(request, *args, **kwargs)
         # context["posts"] = context["posts"][:1]
         context["latest_posts"] = BlogPage.objects.live().public()[:1]
         return render(request, "blog/latest_posts.html", context)
+
+    def get_sitemap_urls(self, request):
+        sitemap = super().get_sitemap_urls(request)
+        sitemap.append(
+            {
+                "location": self.full_url + self.reverse_subpage("latest_post"),
+                "lastmod": (self.last_published_at or self.latest_revision_created_at),
+                "priority": 0.9,
+            }
+        )
+        return sitemap
 
 
 class BlogPage(Page):
