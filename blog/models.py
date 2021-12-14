@@ -1,14 +1,16 @@
 from django.db import models
+from django.shortcuts import render
 
 from streams import blocks
 from wagtail.core.models import Page
 from wagtail.core.fields import RichTextField, StreamField
+from wagtail.contrib.routable_page.models import RoutablePage, RoutablePageMixin, route
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.search import index
 
 
-class BlogIndexPage(Page):
+class BlogIndexPage(RoutablePageMixin, Page):
     intro = RichTextField(blank=True)
 
     custom_title = models.CharField(
@@ -24,8 +26,16 @@ class BlogIndexPage(Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        context["posts"] = BlogDetailPage.objects.live().public()
+        context["posts"] = BlogPage.objects.live().public()
+        context["regular_context_var"] = "Hello world 123123123"
         return context
+
+    @route(r"^latest/$", name="latesst_post")
+    def latest_blog_posts(self, request, *args, **kwargs):
+        context = self.get_context(request, *args, **kwargs)
+        # context["posts"] = context["posts"][:1]
+        context["latest_posts"] = BlogPage.objects.live().public()[:1]
+        return render(request, "blog/latest_posts.html", context)
 
 
 class BlogPage(Page):

@@ -1,4 +1,6 @@
 from django.db import models
+from django.shortcuts import render
+
 from modelcluster.fields import ParentalKey
 from wagtail.admin.edit_handlers import (
     FieldPanel,
@@ -9,6 +11,7 @@ from wagtail.admin.edit_handlers import (
 )
 from wagtail.core.models import Orderable, Page
 from wagtail.core.fields import RichTextField, StreamField
+from wagtail.contrib.routable_page.models import RoutablePage, RoutablePageMixin, route
 from wagtail.images.edit_handlers import ImageChooserPanel
 
 from streams import blocks
@@ -31,7 +34,7 @@ class homPageCarouseImages(Orderable):
     panels = [ImageChooserPanel("carousel_images")]
 
 
-class HomePage(Page):
+class HomePage(RoutablePageMixin, Page):
     """Home page model."""
 
     template = "home/home_page.html"
@@ -82,6 +85,11 @@ class HomePage(Page):
     ]
 
     class Meta:
-
         verbose_name = "Home Page"
         verbose_name_plural = "Home Pages"
+
+    @route(r"^subscribe/$")
+    def the_subscribe_page(self, request, *args, **kwargs):
+        context = self.get_context(request, *args, **kwargs)
+        context["a_special_text"] = "Hello_world123123123"
+        return render(request, "home/subscribe.html", context)
