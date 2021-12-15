@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.fields import Field
 from django import forms
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import render
 
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
@@ -119,10 +120,21 @@ class BlogIndexPage(RoutablePageMixin, Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        context["posts"] = BlogPage.objects.live().public()
+        all_posts = (
+            BlogDetailPage.objects.live().public().order_by("-first_published_at")
+        )
         context["regular_context_var"] = "Hello world 123123123"
         context["authors"] = BlogAuthor.objects.all()
         context["categories"] = BlogCategory.objects.all()
+        paginator = Paginator(all_posts, 5)
+        page = request.GET.get("page")
+        try:
+            posts = paginator.page(page)
+        except PageNotAnInteger:
+            posts = paginator.page(1)
+        except EmptyPage:
+            posts = paginator.page(paginator.num_pages)
+        context["posts"] = posts
         return context
 
     @route(r"^latest/$", name="latest_post")
@@ -250,6 +262,7 @@ class ArticleBlogPage(BlogDetailPage):
 
 class VideoBlogPage(BlogDetailPage):
     """A video Subclassed page."""
+
     template = "blog/video_blog_page.html"
 
     youtube_video_id = models.CharField(max_length=30)
