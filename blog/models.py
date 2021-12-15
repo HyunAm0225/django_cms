@@ -1,7 +1,9 @@
 from django.db import models
+from django.db.models.fields import Field
+from django import forms
 from django.shortcuts import render
 
-from modelcluster.fields import ParentalKey
+from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from streams import blocks
 from wagtail.core.models import Orderable, Page
 from wagtail.core.fields import RichTextField, StreamField
@@ -15,6 +17,7 @@ from wagtail.admin.edit_handlers import (
 from wagtail.snippets.models import register_snippet
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.snippets.edit_handlers import SnippetChooserPanel
+
 from wagtail.search import index
 
 
@@ -72,6 +75,34 @@ class BlogAuthor(models.Model):
 register_snippet(BlogAuthor)
 
 
+class BlogCategory(models.Model):
+    """Blog category for a snippet"""
+
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(
+        verbose_name="slug",
+        allow_unicode=True,
+        max_length=255,
+        help_text="A slug to identify posts by this category",
+    )
+
+    panels = [
+        FieldPanel("name"),
+        FieldPanel("slug"),
+    ]
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Blog Category"
+        verbose_name_plural = "Blog Categoies"
+        ordering = ["name"]
+
+
+register_snippet(BlogCategory)
+
+
 class BlogIndexPage(RoutablePageMixin, Page):
     intro = RichTextField(blank=True)
 
@@ -91,6 +122,7 @@ class BlogIndexPage(RoutablePageMixin, Page):
         context["posts"] = BlogPage.objects.live().public()
         context["regular_context_var"] = "Hello world 123123123"
         context["authors"] = BlogAuthor.objects.all()
+        context["categories"] = BlogCategory.objects.all()
         return context
 
     @route(r"^latest/$", name="latest_post")
@@ -145,6 +177,9 @@ class BlogDetailPage(Page):
         related_name="+",
         on_delete=models.SET_NULL,
     )
+
+    categories = ParentalManyToManyField("blog.BlogCategory", blank=True)
+
     content = StreamField(
         [
             ("full_richtext", blocks.RichTextblock()),
@@ -165,6 +200,12 @@ class BlogDetailPage(Page):
                 InlinePanel("blog_authors", label="Author", min_num=1, max_num=4),
             ],
             heading="Author(s)",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("categories", widget=forms.CheckboxSelectMultiple),
+            ],
+            heading="Categories",
         ),
         StreamFieldPanel("content"),
     ]
