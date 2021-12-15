@@ -24,8 +24,8 @@
             <div class="row">
                 <div class="col-sm-4">
                     <h2><a href="{% pageurl post %}">{{ post.title }}</a></h2>
-                    {% if post.subtitle %}
-                    <p>{{ post.subtitle }}</p>    
+                    {% if post.specific.subtitle %}
+                    <p>{{ post.specific.subtitle }}</p>    
                     {% endif %}
                 </div>
                 <div class="col-sm-6">
