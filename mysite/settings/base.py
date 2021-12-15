@@ -57,6 +57,10 @@ INSTALLED_APPS = [
     "django.contrib.sitemaps",
 ]
 
+INSTALLED_APPS = INSTALLED_APPS + [
+    "django_extensions",
+]
+
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

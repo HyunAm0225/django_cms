@@ -209,3 +209,66 @@ class BlogDetailPage(Page):
         ),
         StreamFieldPanel("content"),
     ]
+
+
+# First subclassed blog post page
+class ArticleBlogPage(BlogDetailPage):
+    """A subclassed blog post page for articles"""
+
+    template = "blog/article_blog_page.html"
+
+    subtitle = models.CharField(max_length=100, default="", blank=True, null=True)
+    intro_image = models.ForeignKey(
+        "wagtailimages.Image",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text="Best size for this image will be 1400x400",
+        related_name="+",
+    )
+
+    content_panels = Page.content_panels + [
+        FieldPanel("custom_title"),
+        FieldPanel("subtitle"),
+        ImageChooserPanel("blog_image"),
+        ImageChooserPanel("intro_image"),
+        MultiFieldPanel(
+            [
+                InlinePanel("blog_authors", label="Author", min_num=1, max_num=4),
+            ],
+            heading="Author(s)",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("categories", widget=forms.CheckboxSelectMultiple),
+            ],
+            heading="Categories",
+        ),
+        StreamFieldPanel("content"),
+    ]
+
+
+class VideoBlogPage(BlogDetailPage):
+    """A video Subclassed page."""
+    template = "blog/video_blog_page.html"
+
+    youtube_video_id = models.CharField(max_length=30)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("youtube_video_id"),
+        FieldPanel("custom_title"),
+        ImageChooserPanel("blog_image"),
+        MultiFieldPanel(
+            [
+                InlinePanel("blog_authors", label="Author", min_num=1, max_num=4),
+            ],
+            heading="Author(s)",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("categories", widget=forms.CheckboxSelectMultiple),
+            ],
+            heading="Categories",
+        ),
+        StreamFieldPanel("content"),
+    ]
